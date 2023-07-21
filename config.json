@@ -1,0 +1,7 @@
+{
+  "token": "你的token",
+  "certificateFile": "<证书>",
+  "certificateKeyFile": "<密钥>",
+  "password": "<你的 Cachefly 密码>>",
+  "taskInterval": 7
+}
