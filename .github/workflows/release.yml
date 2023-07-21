@@ -1,7 +1,8 @@
 # .github/workflows/release.yaml
 
 # 当发布（release）事件触发时执行工作流程
-on: release
+on:
+  push:
 
 name: Build Release
 
