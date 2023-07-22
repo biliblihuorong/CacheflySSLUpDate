@@ -19,30 +19,52 @@ jobs:
         with:
           go-version: 1.20.5
 
-      - name: Build and Cross Compile for amd64
+      - name: Build and Cross Compile for amd64 (Linux)
         run: |
-          GOARCH="amd64" go build -o my_app_linux_amd64_${{ github.sha }} -v .
+          GOARCH="amd64" go build -o CacheflySSLUpDate_Linux_amd64_${{ github.sha }} -v .
 
-      - name: Calculate Hash for amd64
+      - name: Calculate Hash for amd64 (Linux)
         run: |
-          sha256sum my_app_linux_amd64_${{ github.sha }} > hash_amd64.txt
+          sha256sum CacheflySSLUpDate_Linux_amd64_${{ github.sha }} > hash_amd64.txt
 
-      - name: Build and Cross Compile for arm64
+      - name: Build and Cross Compile for arm64 (Linux)
         run: |
-          GOARCH="arm64" go build -o my_app_linux_arm64_${{ github.sha }} -v .
+          GOARCH="arm64" go build -o CacheflySSLUpDate_Linux_arm64_${{ github.sha }} -v .
 
-      - name: Calculate Hash for arm64
+      - name: Calculate Hash for arm64 (Linux)
         run: |
-          sha256sum my_app_linux_arm64_${{ github.sha }} > hash_arm64.txt
+          sha256sum CacheflySSLUpDate_Linux_arm64_${{ github.sha }} > hash_arm64.txt
+
+      - name: Build and Cross Compile for amd64 (Windows)
+        run: |
+          GOOS="windows" GOARCH="amd64" go build -o CacheflySSLUpDate_windows_amd64_${{ github.sha }}.exe -v .
+
+      - name: Calculate Hash for amd64 (Windows)
+        run: |
+          sha256sum CacheflySSLUpDate_windows_amd64_${{ github.sha }}.exe > hash_windows_amd64.txt
+
+      - name: Build and Cross Compile for 386 (Windows)
+        run: |
+          GOOS="windows" GOARCH="386" go build -o CacheflySSLUpDate_windows_386_${{ github.sha }}.exe -v .
+
+      - name: Calculate Hash for 386 (Windows)
+        run: |
+          sha256sum CacheflySSLUpDate_windows_386_${{ github.sha }}.exe > hash_windows_386.txt
+
+      - name: Get latest tag name
+        id: get_tag_name
+        run: |
+          TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+          echo ::set-output name=tag::$TAG
 
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
-          tag_name: ${{ github.sha }}-release
-          release_name: Release ${{ github.sha }}
+          tag_name: ${{ steps.get_tag_name.outputs.tag }}
+          release_name: ${{ steps.get_tag_name.outputs.tag }}  # 使用tag作为releases的版本名称
           draft: false
           prerelease: false
 
@@ -50,7 +72,7 @@ jobs:
         id: upload-release-assets1
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./hash_amd64.txt
@@ -61,18 +83,18 @@ jobs:
         id: upload-release-assets2
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./my_app_linux_amd64_${{ github.sha }}
-          asset_name: my_app_linux_amd64
+          asset_path: ./CacheflySSLUpDate_Linux_amd64_${{ github.sha }}
+          asset_name: CacheflySSLUpDate_Linux_amd64
           asset_content_type: application/octet-stream
 
       - name: Upload Release Assets
         id: upload-release-assets3
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./hash_arm64.txt
@@ -83,9 +105,53 @@ jobs:
         id: upload-release-assets4
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./my_app_linux_arm64_${{ github.sha }}
-          asset_name: my_app_linux_arm64
+          asset_path: ./CacheflySSLUpDate_Linux_arm64_${{ github.sha }}
+          asset_name: CacheflySSLUpDate_Linux_arm64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Assets
+        id: upload-release-assets5
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./hash_windows_amd64.txt
+          asset_name: hash_windows_amd64.txt
+          asset_content_type: text/plain
+
+      - name: Upload Release Assets
+        id: upload-release-assets6
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./CacheflySSLUpDate_windows_amd64_${{ github.sha }}.exe
+          asset_name: CacheflySSLUpDate_windows_amd64.exe
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Assets
+        id: upload-release-assets7
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./hash_windows_386.txt
+          asset_name: hash_windows_386.txt
+          asset_content_type: text/plain
+
+      - name: Upload Release Assets
+        id: upload-release-assets8
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./CacheflySSLUpDate_windows_386_${{ github.sha }}.exe
+          asset_name: CacheflySSLUpDate_windows_386.exe
           asset_content_type: application/octet-stream
