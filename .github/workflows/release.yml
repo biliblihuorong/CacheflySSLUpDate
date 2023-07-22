@@ -1,123 +1,25 @@
-name: Release
-
 on:
   push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
-
+name: Build Release
 jobs:
-  build:
+  releases-matrix:
+    name: Release Go Binary
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        # build and publish in parallel: linux/386, windows/386, linux/amd64, windows/amd64
+        goos: [linux, windows]
+        goarch: [386, amd64]
     steps:
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.20.5  # 替换为您需要的 Go 版本
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Build and package
-        run: |
-          go get -d -v ./...
-
-          # x86 Windows
-          GOOS=windows GOARCH=386 go build -o my-app-386-windows.exe
-          zip my-app-386-windows.zip my-app-386-windows.exe
-
-          # x86 Linux
-          GOOS=linux GOARCH=386 go build -o my-app-386-linux
-          tar czf my-app-386-linux.tar.gz my-app-386-linux
-
-          # x86_64 Windows
-          GOOS=windows GOARCH=amd64 go build -o my-app-amd64-windows.exe
-          zip my-app-amd64-windows.zip my-app-amd64-windows.exe
-
-          # x86_64 Linux
-          GOOS=linux GOARCH=amd64 go build -o my-app-amd64-linux
-          tar czf my-app-amd64-linux.tar.gz my-app-amd64-linux
-
-          # ARM Windows
-          GOOS=windows GOARCH=arm go build -o my-app-arm-windows.exe
-          zip my-app-arm-windows.zip my-app-arm-windows.exe
-
-          # ARM Linux
-          GOOS=linux GOARCH=arm go build -o my-app-arm-linux
-          tar czf my-app-arm-linux.tar.gz my-app-arm-linux
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - uses: actions/checkout@v2
+      - uses: RomanosTrechlis/actions-go-release@v0.4
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
-          tag_name: ${{ github.event.release.tag_name }} # 获取发布事件中的标签名称
-          release_name: Release ${{ github.event.release.tag_name }}
-          draft: false
-          prerelease: false
-
-      - name: Upload binaries
-        id: upload-release-assets-386-windows
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: my-app-386-windows.zip
-          asset_name: my-app-386-windows.zip
-          asset_content_type: application/zip
-
-      - name: Upload binaries
-        id: upload-release-assets-386-linux
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: my-app-386-linux.tar.gz
-          asset_name: my-app-386-linux.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload binaries
-        id: upload-release-assets-amd64-windows
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: my-app-amd64-windows.zip
-          asset_name: my-app-amd64-windows.zip
-          asset_content_type: application/zip
-
-      - name: Upload binaries
-        id: upload-release-assets-amd64-linux
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: my-app-amd64-linux.tar.gz
-          asset_name: my-app-amd64-linux.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload binaries
-        id: upload-release-assets-arm-windows
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: my-app-arm-windows.zip
-          asset_name: my-app-arm-windows.zip
-          asset_content_type: application/zip
-
-      - name: Upload binaries
-        id: upload-release-assets-arm-linux
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: my-app-arm-linux.tar.gz
-          asset_name: my-app-arm-linux.tar.gz
-          asset_content_type: application/gzip
+          release_name: ${{ github.ref_name }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
