@@ -62,7 +62,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           tag_name: ${{ steps.get_tag_name.outputs.tag }}
           release_name: ${{ steps.get_tag_name.outputs.tag }}  # 使用tag作为releases的版本名称
@@ -73,7 +73,7 @@ jobs:
         id: upload-release-assets1
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./hash_amd64.txt
