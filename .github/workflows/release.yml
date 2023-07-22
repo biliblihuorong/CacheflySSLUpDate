@@ -49,7 +49,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           tag_name: ${{ github.event.release.tag_name }} # 获取发布事件中的标签名称
           release_name: Release ${{ github.event.release.tag_name }}
@@ -60,7 +60,7 @@ jobs:
         id: upload-release-assets-386-windows
         uses: actions/upload-release-asset@v1
         env:
-          TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: my-app-386-windows.zip
@@ -71,7 +71,7 @@ jobs:
         id: upload-release-assets-386-linux
         uses: actions/upload-release-asset@v1
         env:
-          TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: my-app-386-linux.tar.gz
@@ -82,7 +82,7 @@ jobs:
         id: upload-release-assets-amd64-windows
         uses: actions/upload-release-asset@v1
         env:
-          TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: my-app-amd64-windows.zip
@@ -93,7 +93,7 @@ jobs:
         id: upload-release-assets-amd64-linux
         uses: actions/upload-release-asset@v1
         env:
-          TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: my-app-amd64-linux.tar.gz
@@ -104,7 +104,7 @@ jobs:
         id: upload-release-assets-arm-windows
         uses: actions/upload-release-asset@v1
         env:
-          TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: my-app-arm-windows.zip
@@ -115,7 +115,7 @@ jobs:
         id: upload-release-assets-arm-linux
         uses: actions/upload-release-asset@v1
         env:
-          TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: my-app-arm-linux.tar.gz
