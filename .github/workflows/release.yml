@@ -3,7 +3,6 @@ name: Release
 on:
   push:
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,7 +11,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.20.5  # 替换为您需要的 Go 版本
+          go-version: 1.x  # Replace with your desired Go version
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -51,8 +50,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
-          tag_name: ${{ github.event.release.tag_name }} # Remove the 'refs/' prefix from the tag name
-          release_name: Release ${{ github.event.release.tag_name }}
+          tag_name: ${{ env.GITHUB_REF/refs\/tags\// }} # Remove the 'refs/tags/' prefix from the tag name
+          release_name: Release ${{ env.GITHUB_REF/refs\/tags\// }}
           draft: false
           prerelease: false
 
