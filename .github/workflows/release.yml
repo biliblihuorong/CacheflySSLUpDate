@@ -1,64 +1,40 @@
-name: Publish Go Binary
+name: Build and release
 
-# 触发条件：在 push 到 main 分支后
 on:
   push:
     branches:
-      - master
-env:
-  GITHUB_TOKEN: ${{ secrets.GOACTION  }}      
+      - main # 触发条件改为main分支，可以根据需要进行调整
+  # 如果你希望在创建标签时也触发工作流程，可以添加以下触发条件
+  # release:
+  #   types:
+  #     - created
+
 jobs:
-  buildAndDeploy:
-    runs-on:  ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.TOKEN }}
-    # 交叉构建,多平台交叉编译
-    strategy:
-      matrix:
-        include:
-          - goarch: amd64
-            goos: linux
-          - goarch: amd64
-            goos: darwin
-          - goarch: arm64
-            goos: linux
-          - goarch: arm64
-            goos: darwin
-    # 使用checkout
+  build:
+    runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with: 
-        go-version: '>=1.16.0'
-    - run: go version
-    - name: make
-      run: make
-      env:
-        GOOS: ${{ matrix.goos }}
-        GOARCH: ${{ matrix.goarch }}            
-    - name: Packaging...
-      run: tar czf nodeUpgrade-${{ matrix.goos }}-${{ matrix.goarch }}.tgz nodeUpgrade
-    - name: Get version
-      id: version
-      run: echo "::set-output name=version::$(git rev-parse --short HEAD)"
-    - name: Gets latest created release info
-      uses: "marvinpinto/action-automatic-releases@latest"
-      with:
-          repo_token: "${{ secrets.TOKEN }}"
-          automatic_release_tag:  ${{ steps.version.outputs.version }}
-          prerelease: true
-          title: "Development Build"
-          files: |
-            ./nodeUpgrade-${{ matrix.goos }}-${{ matrix.goarch }}.tgz              
-#     - name: Uploading assets...
-#       # if: ${{ !env.ACT }}
-#       # id: upload-release-asset 
-#       uses: actions/upload-release-asset@v1
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GOACTION }}
-#       with:
-#         upload_url: ${{ steps.latest_release_info.outputs.upload_url }}
-#         asset_path: ./nodeUpgrade-${{ matrix.goos }}-${{ matrix.goarch }}.tgz
-#         asset_name: nodeUpgrade-${{ matrix.goos }}-${{ matrix.goarch }}.tgz
-#         asset_content_type: application/gzip
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.x # 最新的稳定Go版本，可以从GitHub Actions官方文档中查找
+
+      - name: Build
+        run: go build -o main
+
+      - name: Cross compile
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o main_linux_amd64
+          GOOS=linux GOARCH=arm64 go build -o main_linux_arm64
+          GOOS=darwin GOARCH=amd64 go build -o main_darwin_amd64
+          GOOS=windows GOARCH=amd64 go build -o main_windows_amd64
+
+      - name: Upload releases
+        uses: actions/upload-release@v1
+        with:
+          repository: ${{ github.repository }}
+          tag_name: v1.0.0 # 用一个有意义的版本号来替代github.sha1
+          release_name: Release v1.0.0 # 根据实际情况替换版本号
