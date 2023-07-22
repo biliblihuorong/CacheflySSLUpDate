@@ -1,40 +1,60 @@
-name: Build and release
+name: Cross Compile and Release
 
 on:
   push:
     branches:
-      - master # 触发条件改为main分支，可以根据需要进行调整
-  # 如果你希望在创建标签时也触发工作流程，可以添加以下触发条件
-  # release:
-  #   types:
-  #     - created
+      - master
 
 jobs:
   build:
+    name: Cross Compile and Release
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Go
+      - name: Set up Go 1.20.5
         uses: actions/setup-go@v2
         with:
-          go-version: 1.x # 最新的稳定Go版本，可以从GitHub Actions官方文档中查找
+          go-version: 1.20.5
 
-      - name: Build
-        run: go build -o main
-
-      - name: Cross compile
+      - name: Build and Cross Compile
         run: |
-          GOOS=linux GOARCH=amd64 go build -o main_linux_amd64
-          GOOS=linux GOARCH=arm64 go build -o main_linux_arm64
-          GOOS=darwin GOARCH=amd64 go build -o main_darwin_amd64
-          GOOS=windows GOARCH=amd64 go build -o main_windows_amd64
+          GOARCH="amd64 arm64" go build -o my_app_${{ github.sha }}_linux_$GOARCH -v .
 
-      - name: Upload releases
-        uses: actions/upload-release@v1
+      - name: Calculate Hash
+        run: |
+          sha256sum my_app_${{ github.sha }}_linux_* > hashes.txt
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
-          repository: ${{ github.repository }}
-          tag_name: v1.0.0 # 用一个有意义的版本号来替代github.sha1
-          release_name: Release v1.0.0 # 根据实际情况替换版本号
+          tag_name: ${{ github.sha }}
+          release_name: Release ${{ github.sha }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Assets
+        id: upload-release-assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./hashes.txt
+          asset_name: hashes.txt
+
+      - name: Upload Binary Release Assets
+        id: upload-binary-release-assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./my_app_${{ github.sha }}_linux_*
+          asset_name: my_app_${{ github.sha }}_linux_{arch}
+          asset_content_type: application/octet-stream
