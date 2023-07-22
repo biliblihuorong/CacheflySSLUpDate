@@ -1,25 +1,64 @@
+name: Publish Go Binary
+
+# 触发条件：在 push 到 main 分支后
 on:
   push:
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-
-name: Build Release
+    branches:
+      - main
+env:
+  GITHUB_TOKEN: ${{ secrets.TOKEN }}      
 jobs:
-  releases-matrix:
-    name: Release Go Binary
-    runs-on: ubuntu-latest
+  buildAndDeploy:
+    runs-on:  ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.TOKEN }}
+    # 交叉构建,多平台交叉编译
     strategy:
       matrix:
-        # build and publish in parallel: linux/386, windows/386, linux/amd64, windows/amd64
-        goos: [linux, windows]
-        goarch: [386, amd64]
+        include:
+          - goarch: amd64
+            goos: linux
+          - goarch: amd64
+            goos: darwin
+          - goarch: arm64
+            goos: linux
+          - goarch: arm64
+            goos: darwin
+    # 使用checkout
     steps:
-      - uses: actions/checkout@v2
-      - uses: RomanosTrechlis/actions-go-release@v0.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        with:
-          release_name: ${{ github.ref_name }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
+    - uses: actions/checkout@v3
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with: 
+        go-version: '>=1.16.0'
+    - run: go version
+    - name: make
+      run: make
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}            
+    - name: Packaging...
+      run: tar czf nodeUpgrade-${{ matrix.goos }}-${{ matrix.goarch }}.tgz nodeUpgrade
+    - name: Get version
+      id: version
+      run: echo "::set-output name=version::$(git rev-parse --short HEAD)"
+    - name: Gets latest created release info
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+          repo_token: "${{ secrets.TOKEN }}"
+          automatic_release_tag:  ${{ steps.version.outputs.version }}
+          prerelease: true
+          title: "Development Build"
+          files: |
+            ./nodeUpgrade-${{ matrix.goos }}-${{ matrix.goarch }}.tgz              
+#     - name: Uploading assets...
+#       # if: ${{ !env.ACT }}
+#       # id: upload-release-asset 
+#       uses: actions/upload-release-asset@v1
+#       env:
+#         GITHUB_TOKEN: ${{ secrets.GOACTION }}
+#       with:
+#         upload_url: ${{ steps.latest_release_info.outputs.upload_url }}
+#         asset_path: ./nodeUpgrade-${{ matrix.goos }}-${{ matrix.goarch }}.tgz
+#         asset_name: nodeUpgrade-${{ matrix.goos }}-${{ matrix.goarch }}.tgz
+#         asset_content_type: application/gzip
