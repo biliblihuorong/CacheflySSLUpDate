@@ -19,13 +19,21 @@ jobs:
         with:
           go-version: 1.20.5
 
-      - name: Build and Cross Compile
+      - name: Build and Cross Compile for amd64
         run: |
-          GOARCH="amd64 arm64" go build -o my_app_${{ github.sha }}_linux_$GOARCH -v .
+          GOARCH="amd64" go build -o my_app_linux_amd64_${{ github.sha }} -v .
 
-      - name: Calculate Hash
+      - name: Calculate Hash for amd64
         run: |
-          sha256sum my_app_${{ github.sha }}_linux_* > hashes.txt
+          sha256sum my_app_linux_amd64_${{ github.sha }} > hash_amd64.txt
+
+      - name: Build and Cross Compile for arm64
+        run: |
+          GOARCH="arm64" go build -o my_app_linux_arm64_${{ github.sha }} -v .
+
+      - name: Calculate Hash for arm64
+        run: |
+          sha256sum my_app_linux_arm64_${{ github.sha }} > hash_arm64.txt
 
       - name: Create Release
         id: create_release
@@ -39,22 +47,43 @@ jobs:
           prerelease: false
 
       - name: Upload Release Assets
-        id: upload-release-assets
+        id: upload-release-assets1
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./hashes.txt
-          asset_name: hashes.txt
+          asset_path: ./hash_amd64.txt
+          asset_name: hash_amd64.txt
 
-      - name: Upload Binary Release Assets
-        id: upload-binary-release-assets
+      - name: Upload Release Assets
+        id: upload-release-assets2
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./my_app_${{ github.sha }}_linux_*
-          asset_name: my_app_${{ github.sha }}_linux_{arch}
+          asset_path: ./my_app_linux_amd64_${{ github.sha }}
+          asset_name: my_app_linux_amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Assets
+        id: upload-release-assets3
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./hash_arm64.txt
+          asset_name: hash_arm64.txt
+
+      - name: Upload Release Assets
+        id: upload-release-assets4
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./my_app_linux_arm64_${{ github.sha }}
+          asset_name: my_app_linux_arm64
           asset_content_type: application/octet-stream
