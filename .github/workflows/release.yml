@@ -3,7 +3,7 @@ name: Build and release
 on:
   push:
     branches:
-      - main # 触发条件改为main分支，可以根据需要进行调整
+      - master # 触发条件改为main分支，可以根据需要进行调整
   # 如果你希望在创建标签时也触发工作流程，可以添加以下触发条件
   # release:
   #   types:
