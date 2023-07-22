@@ -2,8 +2,9 @@ name: Cross Compile and Release
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - '*'
+
 
 jobs:
   build:
