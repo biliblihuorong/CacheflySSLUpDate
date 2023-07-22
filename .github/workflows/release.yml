@@ -55,6 +55,7 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./hash_amd64.txt
           asset_name: hash_amd64.txt
+          asset_content_type: text/plain
 
       - name: Upload Release Assets
         id: upload-release-assets2
@@ -76,6 +77,7 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./hash_arm64.txt
           asset_name: hash_arm64.txt
+          asset_content_type: text/plain
 
       - name: Upload Release Assets
         id: upload-release-assets4
