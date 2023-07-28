@@ -5,7 +5,6 @@ on:
     tags:
       - '*'
 
-
 jobs:
   build:
     name: Cross Compile and Release
@@ -55,14 +54,17 @@ jobs:
       - name: Get latest tag name
         id: get_tag_name
         run: |
-          TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+          TAG=$(git tag --sort=-creatordate | head -n1)
+          if [ -z "$TAG" ]; then
+            TAG=${{ github.sha }}
+          fi
           echo ::set-output name=tag::$TAG
 
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           tag_name: ${{ steps.get_tag_name.outputs.tag }}
           release_name: ${{ steps.get_tag_name.outputs.tag }}  # 使用tag作为releases的版本名称
@@ -73,7 +75,7 @@ jobs:
         id: upload-release-assets1
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./hash_amd64.txt
@@ -84,7 +86,7 @@ jobs:
         id: upload-release-assets2
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./CacheflySSLUpDate_Linux_amd64_${{ github.sha }}
@@ -95,7 +97,7 @@ jobs:
         id: upload-release-assets3
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./hash_arm64.txt
@@ -106,7 +108,7 @@ jobs:
         id: upload-release-assets4
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./CacheflySSLUpDate_Linux_arm64_${{ github.sha }}
@@ -117,7 +119,7 @@ jobs:
         id: upload-release-assets5
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./hash_windows_amd64.txt
@@ -128,7 +130,7 @@ jobs:
         id: upload-release-assets6
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./CacheflySSLUpDate_windows_amd64_${{ github.sha }}.exe
@@ -139,7 +141,7 @@ jobs:
         id: upload-release-assets7
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./hash_windows_386.txt
@@ -150,7 +152,7 @@ jobs:
         id: upload-release-assets8
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./CacheflySSLUpDate_windows_386_${{ github.sha }}.exe
